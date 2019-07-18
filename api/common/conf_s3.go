@@ -19,6 +19,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net"
+	"os"
 	"net/http"
 	"time"
 
@@ -73,6 +74,8 @@ var s3HTTPTransport = http.Transport{
 
 var s3Session *session.Session
 
+var s3Log = GetLogger("s3")
+
 func (c *S3Config) Init() *S3Config {
 	if c.Region == "" {
 		c.Region = "us-east-1"
@@ -108,6 +111,9 @@ func (c *S3Config) ToAwsConfig(flags *FlagStorage) (*aws.Config, error) {
 
 	if c.Session == nil {
 		if s3Session == nil {
+			home := os.Getenv("HOME")
+			s3Log.Infof("Loading profile '%v' from '%v/.aws/config'", c.Profile, home)
+
 			var err error
 			s3Session, err = session.NewSessionWithOptions(session.Options{
 				Profile:           c.Profile,
